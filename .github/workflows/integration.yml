@@ -1,0 +1,66 @@
+name: Test integration with Meltano
+
+on:
+  push:
+    branches:
+    - develop
+    paths:
+    - .github/workflows/integration.yml
+    - meltano.yml
+    - plugins/**
+  pull_request:
+    paths:
+    - .github/workflows/integration.yml
+    - meltano.yml
+    - plugins/**
+
+env:
+  FORCE_COLOR: 1
+
+jobs:
+  meltano:
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version:
+        - '3.13'
+        - '3.12'
+        - '3.11'
+        - '3.10'
+        - '3.9'
+        do_timestamp_file: [false]
+        custom_name: [null]
+        include:
+        - python-version: 3.x
+          do_timestamp_file: true
+        - python-version: 3.x
+          custom_name: ${{ github.run_id }}
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-python@v5
+      id: setup-python
+      with:
+        python-version: ${{ matrix.python-version }}
+    - uses: astral-sh/setup-uv@v5
+      with:
+        version: '>=0.5'
+    - env:
+        UV_PYTHON: ${{ steps.setup-python.outputs.python-path }}
+      run: |
+        uv tool install meltano
+    - env:
+        MELTANO_VENV_BACKEND: uv
+        MELTANO_PYTHON: ${{ steps.setup-python.outputs.python-path }}
+        TARGET_JSONL_DO_TIMESTAMP_FILE: ${{ matrix.do_timestamp_file }}
+        TARGET_JSONL_CUSTOM_NAME: ${{ matrix.custom_name }}
+      run: |
+        meltano run tap-smoke-test target-jsonl
+    - name: Show output contents
+      shell: bash
+      run: |
+        if ! command -v tree &> /dev/null; then
+            sudo apt-get install tree
+        fi
+
+        tree -Da --timefmt="%Y-%m-%dT%H:%M:%SZ" output | sed 's/^/    /' | tee -a $GITHUB_STEP_SUMMARY
