@@ -5,13 +5,15 @@ with open("README.md", "r", encoding="utf-8") as f:
     readme = f.read()
 
 setup(
-    name='target-jsonl',
+    name='meltanolabs-target-jsonl',
     version='0.1.4',
     description='Singer.io target for writing JSON Line files',
     long_description=readme,
     long_description_content_type='text/markdown',
     author='Andy Huynh',
     author_email="andy.huynh312@gmail.com",
+    maintainer="Meltano Community",
+    maintainer_email="hello@meltano.com",
     url="https://github.com/andyh1203/target-jsonl",
     keywords=["singer", "singer.io", "target", "etl"],
     classifiers=['Programming Language :: Python :: 3 :: Only'],
