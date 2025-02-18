@@ -1,0 +1,58 @@
+version: 1
+default_environment: dev
+project_id: aadba19a-39cb-42e8-9773-c763fc58d748
+environments:
+- name: dev
+- name: staging
+- name: prod
+send_anonymous_usage_stats: false
+plugins:
+  extractors:
+  - name: tap-smoke-test
+    variant: meltano
+    pip_url: git+https://github.com/meltano/tap-smoke-test.git
+    config:
+      streams:
+      - stream_name: animals
+        input_filename: https://raw.githubusercontent.com/meltano/tap-smoke-test/main/demo-data/animals-data.jsonl
+    metadata:
+      animals:
+        key-properties: [id]
+  loaders:
+  - name: target-jsonl
+    namespace: target_jsonl
+    variant: meltanolabs
+    pip_url: -e .
+    settings:
+    - name: destination_path
+      kind: string
+      value: output
+      label: Destination Path
+      description: |
+        Sets the destination path the JSONL files are written to, relative
+        to the project root.
+
+        The directory needs to exist already, it will not be created
+        automatically.
+
+        To write JSONL files to the project root, set an empty string (`""`).
+    - name: do_timestamp_file
+      kind: boolean
+      value: false
+      label: Include Timestamp in File Names
+      description: |
+        Specifies if the files should get timestamped.
+
+        By default, the resulting file will not have a timestamp in the file name (i.e. `exchange_rate.jsonl`).
+
+        If this option gets set to `true`, the resulting file will have a timestamp associated with it (i.e. `exchange_rate-{timestamp}.jsonl`).
+    - name: custom_name
+      kind: string
+      label: Custom File Name Override
+      description: |
+        Specifies a custom name for the filename, instead of the stream name.
+
+        The file name will be `{custom_name}-{timestamp}.jsonl`, if `do_timestamp_file` is `true`.
+        Otherwise the file name will be `{custom_name}.jsonl`.
+
+        If custom name is not provided, the stream name will be used.
