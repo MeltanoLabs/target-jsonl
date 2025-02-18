@@ -35,7 +35,7 @@ jobs:
         - python-version: 3.x
           do_timestamp_file: true
         - python-version: 3.x
-          custom_name: ${{ github.run_id }}
+          custom_name: custom_filename_${{ github.run_id }}
     steps:
     - uses: actions/checkout@v4
     - uses: actions/setup-python@v5
